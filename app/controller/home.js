@@ -1,11 +1,24 @@
 'use strict';
 
-const Controller = require('egg').Controller;
+const BaseController = require('./base');
 
-class HomeController extends Controller {
-  async index() {
-    this.ctx.body = 'hi, egg';
-  }
+class HomeController extends BaseController {
+    async index() {
+        await this.render('index.html');
+    }
+
+
+    async json() {
+        this.success('json例子');
+    }
+
+    async authCallback() {
+
+    }
+
+    async login() {
+
+    }
 }
 
 module.exports = HomeController;
