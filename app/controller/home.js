@@ -17,7 +17,7 @@ class HomeController extends BaseController {
     }
 
     async login() {
-
+        this.success('json例子');
     }
 }
 

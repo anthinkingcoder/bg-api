@@ -1,14 +1,17 @@
 {
-  "name": "yes",
+  "name": "bg-api",
   "version": "1.0.0",
-  "description": "yes",
+  "description": "bg-api",
   "private": true,
   "dependencies": {
+    "crypto": "^1.0.1",
     "egg": "^2.2.1",
+    "egg-mysql": "^3.0.0",
     "egg-passport": "^2.0.1",
     "egg-scripts": "^2.5.0",
     "egg-view-nunjucks": "^2.1.6",
     "fs": "0.0.1-security",
+    "gulp": "^3.9.1",
     "nunjucks": "^3.1.2",
     "passport-local": "^1.0.0",
     "path": "^0.12.7"
@@ -31,7 +34,7 @@
     "stop": "egg-scripts stop --title=egg-server-yes",
     "dev": "egg-bin dev",
     "debug": "egg-bin debug",
-    "test": "npm run lint -- --fix && npm run test-local",
+    "test": "egg-bin test",
     "test-local": "egg-bin test",
     "cov": "egg-bin cov",
     "lint": "eslint .",
