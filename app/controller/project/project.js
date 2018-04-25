@@ -26,4 +26,39 @@ class ProjectController extends BaseController {
             }
         }
     }
+
+    async findOne() {
+        const ctx = this.ctx;
+        const query = ctx.query;
+        const projectId = query.project_id;
+        const projectService = ctx.service.project.project;
+        const project = await projectService.findById(projectId);
+        this.success(project);
+    }
+
+
+    async update() {
+        const ctx = this.ctx;
+        const body = ctx.request.body;
+        const projectId = query.project_id;
+        const projectService = ctx.service.project.project;
+        const project = await projectService.findById(projectId);
+        if (!project) {
+            this.error(ReponseStatus.NOT_FOUND, '项目不存在');
+        } else {
+            const result = projectService.update({
+                project_name: body.project_name,
+                project_bg: body.project_bg,
+                project_summary: body.project_summary
+            });
+            if (result) {
+                this.success();
+            } else {
+                this.error(ReponseStatus.DB_ERROR, '系统异常');
+            }
+        }
+        this.success(project);
+    }
 }
+
+module.exports = ProjectController;

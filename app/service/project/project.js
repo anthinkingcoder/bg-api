@@ -8,6 +8,12 @@ class ProjectService extends Service {
         return result.affectedRows === 1;
     }
 
+    async update(project = {}) {
+        project.update_at = new Date();
+        const result = await this.app.mysql.update(DB_NAME, project);
+        return result.rowsAffected === 1;
+    }
+
     async findById(id) {
         const project = await this.app.mysql.get(DB_NAME, {id: id});
         return project;

@@ -6,6 +6,10 @@ const valid = {
     validEmail (email) {
         const reg = /^\w+@\w+?\.\w+$/;
         return reg.test(email);
+    },
+    validPassword(password) {
+        const reg = /^[a-zA-Z][a-zA-Z0-9]{7,11}$/;
+        return reg.test(password);
     }
 };
 

@@ -2,7 +2,23 @@ const Service = require('egg').Service;
 const DB_NAME = 'bg_project_member';
 
 class MemberService extends Service {
-    async create(project) {
+    async create(uid, projectId) {
+        const o = this.initMember(uid, projectId);
+        const result = await this.app.mysql.insert(DB_NAME, o);
+        return result.rowsAffected === 1;
+    }
+
+    async remove(uid, projectId) {
+        const result = await this.app.mysql.delete(DB_NAME, {
+            member_id: uid,
+            project_id: projectId
+        });
+        if (result.rowsAffected === 1) {
+            this.ctx.service.project.question.dynamicService.create({
+
+            });
+        }
+        return result.rowsAffected === 1;
     }
 
     async listByMemberId(memberId) {
@@ -18,11 +34,13 @@ class MemberService extends Service {
         return projectMembers;
     }
 
-    initProject(project) {
-        project.create_at = new Date();
-        project.update_at = user.create_at;
-        project.room = 0;
-        return project;
+    initMember(uid, projectId) {
+        let o = {};
+        o.member_id = uid;
+        o.project_id = projectId;
+        o.create_at = new Date();
+        o.update_at = user.create_at;
+        return o;
     }
 }
 

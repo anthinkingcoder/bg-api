@@ -33,17 +33,17 @@ CREATE TABLE bg_user (
 
 DROP TABLE IF EXISTS `bg_project`;
 CREATE TABLE bg_project (
-  `id`              BIGINT UNSIGNED                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          AUTO_INCREMENT,
+  `id`              BIGINT UNSIGNED                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    AUTO_INCREMENT,
   `create_at`       DATETIME        NOT NULL,
   `update_at`       DATETIME NOT NULL,
-  `delete_at`       DATETIME                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 DEFAULT NULL,
+  `delete_at`       DATETIME                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        DEFAULT NULL,
   `project_name`    VARCHAR(255) NOT NULL
   COMMENT '项目名称',
   `project_bg`      VARCHAR(30)  NOT NULL
   COMMENT '项目背景',
   `project_summary` VARCHAR(255) NOT NULL
   COMMENT '项目描述',
-  `project_room`    INTEGER      NOT NULL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    DEFAULT 0
+  `project_room`    INTEGER      NOT NULL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           DEFAULT 0
   COMMENT '项目空间 B为单位',
   `create_user_id`  BIGINT UNSIGNED NOT NULL
   COMMENT '创建人',
@@ -55,11 +55,11 @@ CREATE TABLE bg_project (
 
 DROP TABLE IF EXISTS `bg_project_question`;
 CREATE TABLE bg_project_question (
-  `id`                BIGINT UNSIGNED AUTO_INCREMENT,
-  `create_at` DATETIME        NOT NULL,
+  `id`                BIGINT UNSIGNED  AUTO_INCREMENT,
+  `create_at` DATETIME             NOT NULL,
   `update_at` DATETIME NOT NULL,
   `delete_at` DATETIME        DEFAULT NULL,
-  `question_status` TINYINT NOT NULL
+  `question_status` TINYINT NOT NULL DEFAULT 0
   COMMENT '问题状态',
   `question_priority` TINYINT NOT NULL
   COMMENT '问题优先级',
@@ -67,10 +67,11 @@ CREATE TABLE bg_project_question (
   COMMENT '问题类型',
   `create_user_id`    BIGINT UNSIGNED COMMENT '创建人',
   `pointer_user_id`   BIGINT UNSIGNED COMMENT '指派人',
-  `finished_at`       DATETIME        DEFAULT NULL
+  `finished_at`       DATETIME         DEFAULT NULL
   COMMENT '结束时间',
-  `question_name` VARCHAR(255) NOT NULL COMMENT '主题',
-  `question_summary`  LONGTEXT        DEFAULT NULL
+  `question_name`     VARCHAR(255) NOT NULL
+  COMMENT '主题',
+  `question_summary`  LONGTEXT         DEFAULT NULL
   COMMENT '问题描述',
   PRIMARY KEY (id)
 )
@@ -81,18 +82,18 @@ CREATE TABLE bg_project_question (
 DROP TABLE IF EXISTS `bg_project_question_dynamic`;
 CREATE TABLE bg_project_question_dynamic (
   `id`              BIGINT UNSIGNED AUTO_INCREMENT,
-  `create_at` DATETIME              NOT NULL,
+  `create_at` DATETIME             NOT NULL,
   `update_at` DATETIME NOT NULL,
   `delete_at` DATETIME        DEFAULT NULL,
   `question_id` BIGINT UNSIGNED NOT NULL
   COMMENT '问题',
   `create_user_id` BIGINT UNSIGNED NOT NULL
   COMMENT '发表人',
-  `update_category` BIGINT UNSIGNED NOT NULL
+  `update_category` VARCHAR(255)   NOT NULL
   COMMENT '动态类别',
-  `update_content`  BIGINT UNSIGNED NOT NULL
+  `update_content`  VARCHAR(255)   NOT NULL
   COMMENT '更新内容',
-  `is_comment`      TINYINT         NOT NULL
+  `is_comment`      TINYINT        NOT NULL
   COMMENT '评论标示',
   PRIMARY KEY (id)
 )
@@ -154,12 +155,12 @@ CREATE TABLE bg_project_question_attachment (
   DEFAULT CHARSET = utf8mb4
   COMMENT ='附件表';
 
+
 DROP TABLE IF EXISTS `bg_wiki`;
 CREATE TABLE bg_wiki (
   `id`             BIGINT UNSIGNED AUTO_INCREMENT,
   `create_at` DATETIME               NOT NULL,
   `update_at` DATETIME NOT NULL,
-  `delete_at` DATETIME        DEFAULT NULL,
   `name`      VARCHAR(255)    DEFAULT NULL
   COMMENT 'wiki名称',
   `sort`      INT UNSIGNED DEFAULT 0 NOT NULL
@@ -178,3 +179,22 @@ CREATE TABLE bg_wiki (
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COMMENT ='wiki表';
+
+
+DROP TABLE IF EXISTS `bg_model`;
+CREATE TABLE `bg_model` (
+  `id`         BIGINT UNSIGNED AUTO_INCREMENT,
+  `create_at` DATETIME         NOT NULL,
+  `update_at` DATETIME NOT NULL,
+  `model_name` VARCHAR(255) NOT NULL
+  COMMENT '模块名',
+  `project_id` BIGINT UNSIGNED NOT NULL
+  COMMENT '项目',
+  PRIMARY KEY (id)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COMMENT ='模块表';
+
+
+

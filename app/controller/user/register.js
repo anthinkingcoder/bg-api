@@ -7,7 +7,7 @@ class RegisterController extends BaseController {
     async register() {
         const ctx = this.ctx;
         const body = ctx.request.body;
-        const UserService = ctx.service.user;
+        const userService = ctx.service.user.user;
         let user = {
             email: body.email,
             tel: body.tel,
@@ -21,7 +21,7 @@ class RegisterController extends BaseController {
         } else if (!Valid.validTel(user.tel)) {
             this.error(ReponseStatus.ARGUMENT_ERROR, '手机号码未通过校验');
         } else {
-            const result = await UserService.create(user);
+            const result = await userService.create(user);
             if (result) {
                 delete user.password;
                 this.success(user);

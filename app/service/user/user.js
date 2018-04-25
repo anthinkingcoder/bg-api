@@ -13,6 +13,11 @@ class UserService extends Service {
         return user;
     }
 
+    async findByTel(tel) {
+        const user = await this.app.mysql.get(DB_NAME, {tel: tel});
+        return user;
+    }
+
 
     async create(user) {
         user = this.initUser(user);
