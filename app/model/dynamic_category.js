@@ -21,8 +21,9 @@ const dynamic = {
     QUESTION_CATEGORY: new DynamicEnum('修改类型为', 15),
     POINTER_USER_ID: new DynamicEnum('指派给', 16),
     MODEL_NAME: new DynamicEnum('修改模块', 17),
-    E_PROJECT: new DynamicEnum('退出了项目'),
-    J_PROJECT: new DynamicEnum('加入了项目')
+    E_PROJECT: new DynamicEnum('退出了项目',18),
+    J_PROJECT: new DynamicEnum('加入了项目',19),
+    C_PROJECT: new DynamicEnum('创建了项目',20)
 
 };
 

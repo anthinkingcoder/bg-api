@@ -3,6 +3,7 @@ const BaseController = require('../../base');
 const ResponseStatus = require('../../../model/response_status');
 const Dates = require('../../../util/dates');
 const QuestionCategory = require('../../../model/question_category');
+const QuestionStatus = require('../../../model/question_status');
 
 class StaController extends BaseController {
     /**
@@ -16,8 +17,24 @@ class StaController extends BaseController {
         const projectId = query.project_id;
         const project = await projectService.findById(projectId);
         if (project) {
-            const staList = staService.listQuestionStatusCountByProjectId(projectId);
-            this.success(staList);
+            const list = [];
+            const staList = await staService.listQuestionStatusCountByProjectId(projectId);
+            QuestionStatus.all().forEach(item => {
+                let status;
+                let exist = staList.some(e => {
+                    if (item.state === e.question_status) {
+                        status = e;
+                        return true;
+                    }
+                    return false;
+                });
+                if (exist) {
+                    list.push({name: item.name, num:status.num,status:item.question_status})
+                }else {
+                    list.push({name: item.name, num:0,status:item.question_status,color:item.value})
+                }
+            });
+            this.success(list);
         } else {
             this.error(ResponseStatus.NOT_FOUND, '项目不存在');
         }
@@ -34,7 +51,7 @@ class StaController extends BaseController {
         const projectId = query.project_id;
         const project = await projectService.findById(projectId);
         if (project) {
-            const list = staService.listNewTrendOfQuestion(projectId);
+            const list = await staService.listNewTrendOfQuestion(projectId) ;
             const dates = Dates.getLastestDays(30);
             const newList = [];
             dates.forEach(date => {

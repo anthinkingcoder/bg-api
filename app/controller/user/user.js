@@ -10,8 +10,11 @@ class UserController extends BaseController {
             const userId = this.user().id;
             const userService = ctx.service.user.user;
             let user = await userService.findByUid(userId);
-            console.info(user);
             delete user.password;
+            delete user.salt;
+            delete user.create_at;
+            delete user.delete_at;
+            delete user.update_at;
             this.success(user);
         } catch (e) {
             this.error(ReponseStatus.DB_ERROR, '系统异常');
@@ -61,6 +64,12 @@ class UserController extends BaseController {
             this.error(ReponseStatus.DB_ERROR, '系统异常');
         }
     }
+
+    async logout() {
+        this.ctx.session = null;
+        this.success();
+    }
 }
+
 
 module.exports = UserController;

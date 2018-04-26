@@ -5,7 +5,7 @@ class MemberService extends Service {
     async create(uid, projectId) {
         const o = this.initMember(uid, projectId);
         const result = await this.app.mysql.insert(DB_NAME, o);
-        return result.rowsAffected === 1;
+        return result.affectedRows === 1;
     }
 
     async remove(uid, projectId) {
@@ -13,12 +13,10 @@ class MemberService extends Service {
             member_id: uid,
             project_id: projectId
         });
-        if (result.rowsAffected === 1) {
-            this.ctx.service.project.question.dynamicService.create({
-
-            });
+        if (result.affectedRows === 1) {
+            this.ctx.service.project.question.dynamicService.create({});
         }
-        return result.rowsAffected === 1;
+        return result.affectedRows === 1;
     }
 
     async listByMemberId(memberId) {
@@ -29,7 +27,11 @@ class MemberService extends Service {
     }
 
     async listByProjectId(projectId) {
-        const sql = 'select bg_user.name as name, bg_user.head_img as head_img, bg_user.id as member_id from bg_project_member inner join bg_user on bg_user.id = bg_project_member.member_id where bg_project_member.project_id = ?';
+        const sql = `select bg_user.name as name,
+         bg_user.head_img as head_img,
+          bg_user.id as member_id from bg_project_member
+           inner join bg_user on bg_user.id = bg_project_member.member_id
+            where bg_project_member.project_id = ?`;
         const projectMembers = await this.app.mysql.query(sql, [projectId]);
         return projectMembers;
     }
@@ -39,8 +41,16 @@ class MemberService extends Service {
         o.member_id = uid;
         o.project_id = projectId;
         o.create_at = new Date();
-        o.update_at = user.create_at;
+        o.update_at = o.create_at;
         return o;
+    }
+
+    async findOne(projectId, memberId) {
+        const one = await this.app.mysql.get(DB_NAME, {
+            project_id: projectId,
+            member_id: memberId
+        })
+        return one;
     }
 }
 

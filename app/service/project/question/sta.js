@@ -10,7 +10,7 @@ class Sta extends Service {
      * @returns {Promise.<*>}
      */
     async listQuestionStatusCountByProjectId(projectId) {
-        const sql = `select count(1) as num,question_category from ${DB_NAME} where project_id = ? group by question_category`;
+        const sql = `select count(1) as num,question_status from ${DB_NAME} where project_id = ? group by question_status`;
         const projectMembers = await this.app.mysql.query(sql, [projectId]);
         return projectMembers;
     }
@@ -23,7 +23,8 @@ class Sta extends Service {
     async listNewTrendOfQuestion(projectId) {
         const sql = `select count(1) as num,DATE_FORMAT(create_at,'%M-%D') 
                      as date from ${DB_NAME} where project_id = ? and 
-                     TIMESTAMPDIFF(day,DATE_FORMAT(create_At,'%Y-%m-%d'), DATE_FORMAT(NOW(),'%Y-%m-%d')) < 30
+                     TIMESTAMPDIFF(day,DATE_FORMAT(create_at,'%Y-%m-%d'), DATE_FORMAT(NOW(),'%Y-%m-%d')) < 30
+                     group by DATE_FORMAT(create_at,'%M-%D')
                     `;
         const list = await this.app.mysql.query(sql, [projectId]);
         return list;
@@ -37,7 +38,7 @@ class Sta extends Service {
      */
     async listNewTrendOfQuestionStatus(projectId) {
         const sql = `select count(1) as num,DATE_FORMAT(create_at,'%M-%D') 
-                     as date,question_status from ${DB_NAME} where project_id = ? and 
+                     as date,question_status from ${DB_NAME} where id = ? and 
                      TIMESTAMPDIFF(day,DATE_FORMAT(create_At,'%Y-%m-%d'), DATE_FORMAT(NOW(),'%Y-%m-%d')) < 30
                       group by question_status`;
         const list = await this.app.mysql.query(sql, [projectId]);
@@ -127,3 +128,5 @@ class Sta extends Service {
 
 
 }
+
+module.exports = Sta;

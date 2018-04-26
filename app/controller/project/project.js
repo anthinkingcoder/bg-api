@@ -1,25 +1,38 @@
 'use strict';
 const BaseController = require('../base');
 const ReponseStatus = require('../../model/response_status');
+const DynamicCategory = require('../../model/project_dynamic_category');
 
 class ProjectController extends BaseController {
     async create() {
         const ctx = this.ctx;
         const body = ctx.request.body;
         const projectService = ctx.service.project.project;
+        const dynamicService = ctx.service.project.dynamic;
+        const memberInviteService = ctx.service.project.invite;
         const user = this.user();
         let project = {
-            bg_name: body.bg_name,
-            bg_color: body.bg_color,
-            bg_summary: body.bg_summary,
-            bg_create_id: user.id
+            project_name: body.project_name,
+            project_bg: body.project_bg,
+            project_summary: body.project_summary,
+            create_user_id: user.id
         };
 
         if (!this.objectNotNull(project)) {
             this.error(ReponseStatus.ARGUMENT_ERROR, '创建项目-参数校验错误');
         } else {
-            const result = projectService.create(project);
-            if (result) {
+            const result = await projectService.create(project);
+            if (result.success) {
+                //生成动态
+                await dynamicService.create({
+                    project_id: result.insertId,
+                    create_user_id: user.id,
+                    dynamic_category: DynamicCategory.C_PROJECT.name,
+                });
+                //生成邀请
+                await memberInviteService.create({
+                    project_id: result.insertId
+                });
                 this.success('项目创建成功');
             } else {
                 this.error(ReponseStatus.DB_ERROR, '项目创建失败');
@@ -32,10 +45,26 @@ class ProjectController extends BaseController {
         const query = ctx.query;
         const projectId = query.project_id;
         const projectService = ctx.service.project.project;
-        const project = await projectService.findById(projectId);
+        const project = await projectService.findDetail(projectId);
+        project.isMe = this.user().id === project.user_id;
         this.success(project);
     }
 
+    async listByMemberId() {
+        const ctx = this.ctx;
+        const projectService = ctx.service.project.project;
+        const userId = this.user().id;
+        const list = await projectService.listByMemberId(userId);
+        this.success(list);
+    }
+
+    async listByCreateUserId() {
+        const ctx = this.ctx;
+        const projectService = ctx.service.project.project;
+        const userId = this.user().id;
+        const list = await projectService.listByCreateUserId(userId);
+        this.success(list);
+    }
 
     async update() {
         const ctx = this.ctx;

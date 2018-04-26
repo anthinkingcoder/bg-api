@@ -10,7 +10,7 @@ class BaseController extends Controller {
         super(ctx);
     }
 
-    async user() {
+    user() {
         return this.ctx.session.user;
     }
 
@@ -19,14 +19,14 @@ class BaseController extends Controller {
     }
 
 
-     error(code, message) {
+    error(code, message) {
         this.ctx.body = {
             code: code,
             message: message
         }
     }
 
-     success(data) {
+    success(data) {
         this.ctx.body = {
             code: '00000',
             data: data
@@ -47,7 +47,7 @@ class BaseController extends Controller {
 
 
     objectNotNull(object, filterArgs) {
-        let keys =  Object.keys(object).filter(key => {
+        let keys = Object.keys(object).filter(key => {
             let flag = true;
             if (filterArgs) {
                 filterArgs.forEach(item => {
