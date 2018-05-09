@@ -5,6 +5,7 @@ const QuestionPriority = require('../../../model/question_priority');
 const QuestionCategory = require('../../../model/question_category');
 const WhereProperty = require('../../../model/where_property');
 const QuestionStatus = require('../../../model/question_status');
+const Dates = require('../../../util/dates');
 
 class QuestionController extends BaseController {
     async create() {
@@ -23,9 +24,13 @@ class QuestionController extends BaseController {
                 const pointer_id = body.pointer_user_id;
                 const question_category = body.question_category;
                 const question_summary = body.question_summary;
+                let finished_at = body.finished_at;
+                const project_id = body.project_id;
+                let model_id = body.model_id;
 
                 if (!question_name) {
                     this.error(ResponseStatus.ARGUMENT_ERROR, '问题名称不能为空');
+                    return;
                 }
                 if (!QuestionCategory.isExist(question_category)) {
                     this.error(ResponseStatus.ARGUMENT_ERROR, '问题类型不存在');
@@ -36,19 +41,30 @@ class QuestionController extends BaseController {
                     return;
                 }
                 if (pointer_id) {
-                    let result = userService.findById(pointer_id);
+                    let result = userService.findByUid(pointer_id);
                     if (!result) {
                         this.error(ResponseStatus.NOT_FOUND, '指派人不存在');
                         return;
                     }
                 }
-                const result = questionService.create({
+                if (model_id) {
+
+                }
+                if (finished_at) {
+                    finished_at = Dates.strToDate(finished_at);
+                }
+
+
+                const result = await questionService.create({
                     create_user_id: create_user_id,
-                    pointer_user_id: pointer_id,
+                    pointer_user_id: pointer_id ? pointer_id : null,
                     question_summary: question_summary,
                     question_name: question_name,
                     question_priority: question_priority,
-                    question_category: question_category
+                    question_category: question_category,
+                    finished_at: finished_at ? finished_at : null,
+                    project_id: project_id,
+                    model_id: model_id ? model_id : null
                 });
                 if (result) {
                     this.success('问题创建成功');
@@ -59,7 +75,8 @@ class QuestionController extends BaseController {
                 this.error(ResponseStatus.NOT_FOUND, '项目不存在');
             }
         } catch (e) {
-            this.error(ResponseStatus.DB_ERROR,'系统异常');
+            console.info(e);
+            this.error(ResponseStatus.DB_ERROR, '系统异常');
         }
 
     }
@@ -71,7 +88,6 @@ class QuestionController extends BaseController {
             const body = ctx.request.body;
             const questionService = ctx.service.project.question.question;
             const projectService = ctx.service.project.project;
-            const userService = ctx.service.user.user;
             const project = await projectService.findById(body.project_id);
             if (project) {
                 let search = body.search;
@@ -82,92 +98,166 @@ class QuestionController extends BaseController {
                 let pointer_user_id = body.pointer_user_id;
                 let create_at = body.create_at;
                 let update_at = body.update_at;
+                let finished_at = body.finished_at;
+                let order = body.order ? body.order : {'key':'create_at', 'sort':'desc'} ;
                 let whereInfo = [
+                    new WhereProperty('project_id', project.id),
                     new WhereProperty('question_status', question_status),
                     new WhereProperty('question_priority', question_priority),
                     new WhereProperty('create_user_id', create_user_id),
                     new WhereProperty('question_category', question_category),
                     new WhereProperty('pointer_user_id', pointer_user_id),
-                    new WhereProperty('create_at', create_at),
-                    new WhereProperty('update_at', update_at),
-                    new WhereProperty('search', search, 'like')
                 ];
+                if (create_at && create_at.start_at && create_at.end_at) {
+                    whereInfo.push(new WhereProperty('create_at', [create_at.start_at, create_at.end_at], 'daterange'));
+                }
 
-                let page = body.page || 0;
+                if (update_at && update_at.start_at && update_at.end_at) {
+                    whereInfo.push(new WhereProperty('update_at', [update_at.start_at, update_at.end_at], 'daterange'));
+                }
+
+                if (finished_at && finished_at.start_at && finished_at.end_at) {
+                    whereInfo.push(new WhereProperty('finished_at', [finished_at.start_at, finished_at.end_at], 'daterange'));
+                }
+                if (search) {
+                    whereInfo.push(new WhereProperty('question_name', `%${search}%`, 'like'),
+                    )
+                }
+
+                let page = body.page || 1;
                 let size = body.size || 10;
-                const list = questionService.list(whereInfo, page, size)
-                this.success(list);
+                const list = await questionService.list(whereInfo, page, size,order);
+
+                //格式化时间
+                list.forEach(item => {
+                    item.create_at = Dates.toDate(item.create_at);
+                    item.finished_at = Dates.toDate(item.finished_at);
+                    item.update_at = Dates.toDate(item.update_at);
+                });
+                const count = await questionService.count(whereInfo);
+                this.success({
+                    list: list,
+                    page: page,
+                    size: size,
+                    total: count[0].count
+                });
 
             } else {
                 this.error(ResponseStatus.NOT_FOUND, '项目不存在');
             }
         } catch (e) {
-            this.error(ResponseStatus.DB_ERROR,'系统异常');
+            console.info(e);
+            this.error(ResponseStatus.DB_ERROR, '系统异常');
         }
 
     }
 
+
     async listByProjectIdAndPointerId() {
         try {
             const ctx = this.ctx;
-            const body = ctx.request.body;
+            const query = ctx.query;
             const questionService = ctx.service.project.question.question;
             const projectService = ctx.service.project.project;
-            const project = await projectService.findById(body.projectId);
+            const project = await projectService.findById(query.project_id);
             if (project) {
-                const list = await questionService.listByProjectIdAndPointerId(body.projectId, body.pointer_user_id);
+                const list = await questionService.listByProjectIdAndPointerId(query.project_id, this.user().idx);
                 this.success({
-                    [QuestionStatus.NEW.name]: list.filter(item => item.question_status === QuestionStatus.NEW.state),
-                    [QuestionStatus.HANDLER.name]: list.filter(item => item.question_status === QuestionStatus.HANDLER.state),
-                    [QuestionStatus.RESOLVED.name]: list.filter(item => item.question_status === QuestionStatus.RESOLVED.state),
-                    [QuestionStatus.IGNORE.name]: list.filter(item => item.question_status === QuestionStatus.IGNORE.state),
-                    [QuestionStatus.PENDING.name]: list.filter(item => item.question_status === QuestionStatus.PENDING.state),
-                    [QuestionStatus.CLOSE.name]: list.filter(item => item.question_status === QuestionStatus.CLOSE.state),
-                    [QuestionStatus.RE_OPEN.name]: list.filter(item => item.question_status === QuestionStatus.RE_OPEN.state)
+                    [QuestionStatus.NEW.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.NEW.state),
+                        status: QuestionStatus.NEW.state
+                    },
+                    [QuestionStatus.HANDLER.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.HANDLER.state),
+                        status: QuestionStatus.HANDLER.state
+                    },
+                    [QuestionStatus.RESOLVED.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.RESOLVED.state),
+                        status: QuestionStatus.RESOLVED.state
+                    },
+                    [QuestionStatus.IGNORE.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.IGNORE.state),
+                        status: QuestionStatus.IGNORE.state
+                    },
+                    [QuestionStatus.PENDING.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.PENDING.state),
+                        status: QuestionStatus.PENDING.state
+                    },
+                    [QuestionStatus.CLOSE.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.CLOSE.state),
+                        status: QuestionStatus.CLOSE.state
+                    },
+                    [QuestionStatus.RE_OPEN.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.RE_OPEN.state),
+                        status: QuestionStatus.RE_OPEN.state
+                    }
                 })
             } else {
                 this.error(ResponseStatus.NOT_FOUND, '项目不存在');
             }
         } catch (e) {
-            this.error(ResponseStatus.DB_ERROR,'系统异常');
+            console.info(e);
+            this.error(ResponseStatus.DB_ERROR, '系统异常');
         }
     }
 
     async listByProjectIdAndCreateUserId() {
         try {
             const ctx = this.ctx;
-            const body = ctx.request.body;
+            const query = ctx.query;
             const questionService = ctx.service.project.question.question;
             const projectService = ctx.service.project.project;
-            const project = await projectService.findById(body.projectId);
+            const project = await projectService.findById(query.project_id);
             if (project) {
-                const list = await questionService.listByProjectIdAndCreateUserId(body.projectId, body.create_user_id);
+                const list = await questionService.listByProjectIdAndCreateUserId(query.project_id, this.user().id);
                 this.success({
-                    [QuestionStatus.NEW.name]: list.filter(item => item.question_status === QuestionStatus.NEW.state),
-                    [QuestionStatus.HANDLER.name]: list.filter(item => item.question_status === QuestionStatus.HANDLER.state),
-                    [QuestionStatus.RESOLVED.name]: list.filter(item => item.question_status === QuestionStatus.RESOLVED.state),
-                    [QuestionStatus.IGNORE.name]: list.filter(item => item.question_status === QuestionStatus.IGNORE.state),
-                    [QuestionStatus.PENDING.name]: list.filter(item => item.question_status === QuestionStatus.PENDING.state),
-                    [QuestionStatus.CLOSE.name]: list.filter(item => item.question_status === QuestionStatus.CLOSE.state),
-                    [QuestionStatus.RE_OPEN.name]: list.filter(item => item.question_status === QuestionStatus.RE_OPEN.state)
+                    [QuestionStatus.NEW.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.NEW.state),
+                        status: QuestionStatus.NEW.state
+                    },
+                    [QuestionStatus.HANDLER.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.HANDLER.state),
+                        status: QuestionStatus.HANDLER.state
+                    },
+                    [QuestionStatus.RESOLVED.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.RESOLVED.state),
+                        status: QuestionStatus.RESOLVED.state
+                    },
+                    [QuestionStatus.IGNORE.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.IGNORE.state),
+                        status: QuestionStatus.IGNORE.state
+                    },
+                    [QuestionStatus.PENDING.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.PENDING.state),
+                        status: QuestionStatus.PENDING.state
+                    },
+                    [QuestionStatus.CLOSE.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.CLOSE.state),
+                        status: QuestionStatus.CLOSE.state
+                    },
+                    [QuestionStatus.RE_OPEN.name]: {
+                        list: list.filter(item => item.question_status === QuestionStatus.RE_OPEN.state),
+                        status: QuestionStatus.RE_OPEN.state
+                    }
                 })
             } else {
                 this.error(ResponseStatus.NOT_FOUND, '项目不存在');
             }
         } catch (e) {
-            this.error(ResponseStatus.DB_ERROR,'系统异常');
+            this.error(ResponseStatus.DB_ERROR, '系统异常');
         }
     }
 
     async findDetail() {
         try {
             const ctx = this.ctx;
-            const body = ctx.request.body;
+            const query = ctx.query;
             const questionService = ctx.service.project.question.question;
-            const quesition = await questionService.findDetailById(body.question_id);
-            this.success(quesition);
+            const question = await questionService.findDetailById(query.question_id);
+            this.success(question[0]);
         } catch (e) {
-            this.error(ResponseStatus.DB_ERROR,'系统异常');
+            console.info(e);
+            this.error(ResponseStatus.DB_ERROR, '系统异常');
         }
     }
 
@@ -185,7 +275,7 @@ class QuestionController extends BaseController {
                 this.error(ResponseStatus.NOT_FOUND, '问题不存在');
             } else {
                 const result = await questionService.update({
-                    [field]: value,
+                    [field]: value ? value : null,
                     id: question_id
                 }, userId, field);
                 if (result) {
@@ -195,7 +285,8 @@ class QuestionController extends BaseController {
                 }
             }
         } catch (e) {
-            this.error(ResponseStatus.DB_ERROR,'系统异常');
+            console.info(e);
+            this.error(ResponseStatus.DB_ERROR, '系统异常');
         }
     }
 }

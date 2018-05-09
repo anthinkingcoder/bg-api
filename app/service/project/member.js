@@ -13,9 +13,7 @@ class MemberService extends Service {
             member_id: uid,
             project_id: projectId
         });
-        if (result.affectedRows === 1) {
-            this.ctx.service.project.question.dynamicService.create({});
-        }
+        console.info(result);
         return result.affectedRows === 1;
     }
 
@@ -29,6 +27,7 @@ class MemberService extends Service {
     async listByProjectId(projectId) {
         const sql = `select bg_user.name as name,
          bg_user.head_img as head_img,
+         bg_user.email as email,
           bg_user.id as member_id from bg_project_member
            inner join bg_user on bg_user.id = bg_project_member.member_id
             where bg_project_member.project_id = ?`;
@@ -49,7 +48,7 @@ class MemberService extends Service {
         const one = await this.app.mysql.get(DB_NAME, {
             project_id: projectId,
             member_id: memberId
-        })
+        });
         return one;
     }
 }

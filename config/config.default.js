@@ -40,6 +40,7 @@ module.exports = appInfo => {
             password: '837769723',
             // 数据库名
             database: 'bg',
+            charset: 'utf8mb4_general_ci'
         },
         // 是否加载到 app 上，默认开启
         app: true,

@@ -16,11 +16,18 @@ class DynamicService extends Service {
         return list;
     }
 
-    async listQuestionDynamicByProjectId(projectId, page, size) {
-        const list = await this.app.mysql.select(DB_NAME, {
-            where: {project_id: projectId},
-            orders: [['create_at', 'desc']]
-        });
+    async listQuestionDynamicByQuestionId(questionId) {
+        let sql = `select bg_project_question_dynamic.update_content as update_content,
+        bg_project_question_dynamic.update_category as update_category,
+        bg_project_question_dynamic.create_user_id as create_user_id,
+        bg_user.name as create_user_name,
+        bg_project_question_dynamic.create_at as create_at,
+        bg_project_question_dynamic.is_comment as is_comment,
+        bg_project_question_dynamic.comment_content as comment_content,
+        bg_project_question_dynamic.update_field as update_field from bg_project_question_dynamic
+         inner join bg_user on bg_user.id = bg_project_question_dynamic.create_user_id where bg_project_question_dynamic.question_id = ? 
+         order by bg_project_question_dynamic.create_at asc`;
+        const list = await this.app.mysql.query(sql, [questionId]);
         return list;
     }
 
@@ -32,7 +39,7 @@ class DynamicService extends Service {
 
     initDynamic(dynamic) {
         dynamic.create_at = new Date();
-        dynamic.update_at = user.create_at;
+        dynamic.update_at = dynamic.create_at;
         return dynamic;
     }
 }

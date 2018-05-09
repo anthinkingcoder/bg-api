@@ -76,6 +76,7 @@ CREATE TABLE bg_project_question (
   `question_summary`  LONGTEXT         DEFAULT NULL
   COMMENT '问题描述',
   `project_id`        BIGINT UNSIGNED COMMENT '项目',
+  `model_id` BIGINT UNSIGNED DEFAULT NULL,
   PRIMARY KEY (id)
 )
   ENGINE = InnoDB
@@ -109,12 +110,14 @@ CREATE TABLE bg_project_question_dynamic (
   COMMENT '问题',
   `create_user_id` BIGINT UNSIGNED NOT NULL
   COMMENT '发表人',
-  `update_category` VARCHAR(255)   NOT NULL
+  `update_category` VARCHAR(255)   DEFAULT NULL
   COMMENT '动态类别',
-  `update_content`  VARCHAR(255)   NOT NULL
+  `update_content`  VARCHAR(255)   DEFAULT NULL
   COMMENT '更新内容',
-  `is_comment`      TINYINT        NOT NULL
+  `comment_content` LONGTEXT DEFAULT NULL COMMENT '评论内容',
+  `is_comment`      TINYINT      DEFAULT 0  NOT NULL
   COMMENT '评论标示',
+  `update_field` VARCHAR(255) NOT NULL COMMENT '更新属性',
   PRIMARY KEY (id)
 )
   ENGINE = InnoDB
@@ -183,17 +186,16 @@ CREATE TABLE bg_wiki (
   `update_at` DATETIME NOT NULL,
   `name`      VARCHAR(255)    DEFAULT NULL
   COMMENT 'wiki名称',
-  `sort`      INT UNSIGNED DEFAULT 0 NOT NULL
-  COMMENT '排序',
-  `parent_id` BIGINT UNSIGNED DEFAULT NULL,
+
+  `model_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '模块名',
   `create_user_id` BIGINT UNSIGNED   NOT NULL
-  COMMENT '创建人'
-  COMMENT '上传者编号',
+  COMMENT '创建人',
+   `update_user_id` BIGINT UNSIGNED   NOT NULL
+    COMMENT '更新人',
   `project_id`     BIGINT UNSIGNED   NOT NULL
   COMMENT '项目',
   `content`        LONGTEXT        DEFAULT NULL
-  COMMENT '内容'
-  COMMENT '知识点文档',
+  COMMENT '内容',
   PRIMARY KEY (id)
 )
   ENGINE = InnoDB

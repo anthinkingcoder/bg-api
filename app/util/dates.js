@@ -1,3 +1,4 @@
+const moment = require('moment');
 const dates = {
     ONE_DAY_MILLISECONDS: 24 * 60 * 60 * 1000,
     /**
@@ -57,6 +58,18 @@ const dates = {
             return 0 + s;
         }
         return s;
+    },
+    strToDate(str, format = 'YYYY-MM-DD') {
+        return str ? moment(str, format).toDate():str;
+    },
+    strToDateTime(str, format = "YYYY-MM-DD hh:mm:ss") {
+        return this.strToDateTime(str, format);
+    },
+    toDate(date, format = 'YYYY-MM-DD') {
+        return date ? moment(date).format(format) : date;
+    },
+    toDateTime(date, format = 'YYYY-MM-DD hh:mm:ss') {
+        return this.toDateTime(date, format);
     }
 };
 module.exports = dates;

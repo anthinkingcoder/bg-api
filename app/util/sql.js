@@ -1,31 +1,46 @@
 const sql = {
-
-    generatorWhereInfo(proArray) {
-
+    valueToArray(whereInfo) {
+        let values = [];
+        whereInfo.forEach(item => {
+            let value = item.value;
+            if (value) {
+                if (Array.isArray(value)) {
+                    values = values.concat(value);
+                } else {
+                    values.push(value);
+                }
+            }
+        });
+        return  values;
     },
     generatorWhereSql(whereInfo, tableName) {
         const sqls = [];
         if (whereInfo) {
-            sqls.push(' where');
             whereInfo.forEach(item => {
                 let type = item.type || '=';
-                console.info(type);
                 let key = tableName ? `${tableName}.${item.key}` : item.key;
                 let value = item.value;
                 if (value) {
                     if (whereSqlTypeReg.test(type)) {
                         sqls.push(`${key} ${type} ? and`)
                     } else if (whereSqlLikeTypeReg.test(type)) {
-                        sqls.push(`${key} ${type} %?% and`);
+                        sqls.push(`${key} ${type} ? and`);
                     } else if (whereSqlInTypeReg.test(type)) {
                         if (Array.isArray(value)) {
                             sqls.push(`${key} ${type} ${this.getInDateString(value.length)} and`)
                         }
+                    }else if (whereSqlDateRange.test(type)) {
+                        if (Array.isArray(value) && value.length === 2 && value[0] && value[1]) {
+                            sqls.push(`DATE_FORMAT(${key},'%Y-%m-%d') >= ? and DATE_FORMAT(${key},'%Y-%m-%d') <= ? and`)
+                        }
                     }
                 }
             });
-            let lastIndex = sqls.length - 1;
-            sqls[lastIndex] = sqls[lastIndex].substring(0, sqls[lastIndex].lastIndexOf('and'));
+            if (sqls.length > 0) {
+                let lastIndex = sqls.length - 1;
+                sqls[lastIndex] = sqls[lastIndex].substring(0, sqls[lastIndex].lastIndexOf('and'));
+                sqls.unshift('where ');
+            }
         }
         return sqls.join(' ');
     },
@@ -45,6 +60,8 @@ const sql = {
 const whereSqlTypeReg = /^(<|>|>=|<=|=)$/;
 const whereSqlLikeTypeReg = /^like$/;
 const whereSqlInTypeReg = /^in$/i;
+const whereSqlDateRange = /^daterange$/;
+
 
 module.exports = sql;
 //

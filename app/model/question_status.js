@@ -9,8 +9,8 @@ const question_status = {
     RE_OPEN: new CommonEnum('重新打开', 6,'#8b7cc5'),
 
     isExist: (state) => {
-        return this.__ENUMS.some(e => {
-            return e.state === state;
+        return question_status.all().some(e => {
+            return e.state == state;
         });
     },
     all: () => {
@@ -19,7 +19,7 @@ const question_status = {
     getEnums: state => {
         let qc = null;
         question_status.all().forEach(e => {
-            if (e.state === state) {
+            if (e.state == state) {
                 qc = e;
             }
         });

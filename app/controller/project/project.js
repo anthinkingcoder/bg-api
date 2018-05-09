@@ -4,6 +4,35 @@ const ReponseStatus = require('../../model/response_status');
 const DynamicCategory = require('../../model/project_dynamic_category');
 
 class ProjectController extends BaseController {
+
+    async hasJoin() {
+        const ctx = this.ctx;
+        const query = ctx.query;
+        const project_id = query.project_id;
+        const user = this.user();
+        const projectService = ctx.service.project.project;
+        const memberService = ctx.service.project.member;
+        const project = await projectService.findById(project_id);
+        if (project) {
+            if (user.id == project.create_user_id) {
+                this.success({
+                    isJoin: true,
+                    isAdmin: true
+                })
+            } else {
+                const member = await memberService.findOne(project_id, user.id);
+                if (member) {
+                    this.success({
+                        isJoin: false,
+                        isAdmin: false
+                    })
+                } else {
+                    this.error(ReponseStatus.AUTH_ERROR, '未加入');
+                }
+            }
+        }
+    }
+
     async create() {
         const ctx = this.ctx;
         const body = ctx.request.body;
@@ -66,27 +95,36 @@ class ProjectController extends BaseController {
         this.success(list);
     }
 
+    async listByProjectName() {
+
+    }
+
+
     async update() {
-        const ctx = this.ctx;
-        const body = ctx.request.body;
-        const projectId = query.project_id;
-        const projectService = ctx.service.project.project;
-        const project = await projectService.findById(projectId);
-        if (!project) {
-            this.error(ReponseStatus.NOT_FOUND, '项目不存在');
-        } else {
-            const result = projectService.update({
-                project_name: body.project_name,
-                project_bg: body.project_bg,
-                project_summary: body.project_summary
-            });
-            if (result) {
-                this.success();
+        try {
+            const ctx = this.ctx;
+            const body = ctx.request.body;
+            const projectId = body.project_id;
+            const projectService = ctx.service.project.project;
+            const project = await projectService.findById(projectId);
+            if (!project) {
+                this.error(ReponseStatus.NOT_FOUND, '项目不存在');
             } else {
-                this.error(ReponseStatus.DB_ERROR, '系统异常');
+                const result = projectService.update({
+                    project_name: body.project_name,
+                    project_bg: body.project_bg,
+                    project_summary: body.project_summary,
+                    id: projectId
+                });
+                if (result) {
+                    this.success();
+                } else {
+                    this.error(ReponseStatus.DB_ERROR, '系统异常');
+                }
             }
+        } catch (e) {
+            this.error(ReponseStatus.DB_ERROR, '系统异常');
         }
-        this.success(project);
     }
 }
 

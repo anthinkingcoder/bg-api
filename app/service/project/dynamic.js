@@ -20,7 +20,7 @@ class DynamicService extends Service {
     async create(dynamic) {
         dynamic = this.initDynamic(dynamic);
         const result = await this.app.mysql.insert(DB_NAME, dynamic);
-        return result.rowsAffected === 1;
+        return result.affectedRows === 1;
     }
 
     initDynamic(dynamic) {

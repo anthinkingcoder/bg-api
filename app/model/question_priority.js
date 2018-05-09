@@ -1,18 +1,21 @@
 const CommonEnum = require('./common_enum');
-const question_category = {
-    H: new CommonEnum('高', 0),
+const question_priority = {
+    H: new CommonEnum('高', 2),
     N: new CommonEnum('中', 1),
-    L: new CommonEnum('低', 2),
+    L: new CommonEnum('低', 0),
     __ENUMS: [this.H, this.N, this.L],
     isExist: (state) => {
-        return this.__ENUMS.some(e => {
-            return e.state === state;
+        return question_priority.all().some(e => {
+            return e.state == state;
         });
+    },
+    all: () => {
+        return [question_priority.H, question_priority.N, question_priority.L];
     },
     getEnums: state => {
         let qc = null;
-        this.__ENUMS.forEach(e => {
-            if (e.state === state) {
+        question_priority.all().forEach(e => {
+            if (e.state == state) {
                 qc = e;
             }
         });
@@ -20,4 +23,4 @@ const question_category = {
     }
 };
 
-module.exports = question_category;
+module.exports = question_priority;
