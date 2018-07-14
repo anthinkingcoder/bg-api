@@ -20,7 +20,9 @@ module.exports = options => {
 };
 
 function filterNoAuthUrls(noAuths, url) {
+    url = url.split('?')[0];
     return noAuths.some(auth => {
+        console.info([auth,url]);
         if (auth === url) {
             return true;
         }

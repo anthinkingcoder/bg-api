@@ -98,4 +98,6 @@ module.exports = app => {
     router.post('/api/project/removeMember', controller.project.member.removeMember);
 
     router.get('/api/project/hasJoin', controller.project.project.hasJoin);
+
+    router.get('/api/email/invite', controller.project.invite.sendInviteEmail);
 };

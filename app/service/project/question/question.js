@@ -63,7 +63,7 @@ class QuestionService extends Service {
          from bg_project_question 
          inner join bg_user as a on a.id = bg_project_question.create_user_id  
             left join bg_user as b on b.id = bg_project_question.pointer_user_id 
-            left join bg_model as c on c.project_id = bg_project_question.project_id 
+            left join bg_model as c on c.id = bg_project_question.model_id 
         ${Sql.generatorWhereSql(whereInfo, "bg_project_question")}
          order by ${DB_NAME}.${order.key} ${order.sort}
          limit ?, ?`;
@@ -107,7 +107,7 @@ class QuestionService extends Service {
          from bg_project_question 
          inner join bg_user as a on a.id = bg_project_question.create_user_id  
             left join bg_user as b on b.id = bg_project_question.pointer_user_id 
-            left join bg_model as c on c.project_id = bg_project_question.project_id 
+            left join bg_model as c on c.id = bg_project_question.model_id 
              where bg_project_question.id = ?`;
         const question = await this.app.mysql.query(sql, [id]);
         return question;
@@ -121,7 +121,7 @@ class QuestionService extends Service {
         }
         const result = await this.app.mysql.beginTransactionScope(async coon => {
             await coon.update(DB_NAME, question);
-            const update = await this.getUpdateContent(field, question[field]);
+            const update = await this.getUpdateContent(field, question[field],question);
             await coon.insert('bg_project_question_dynamic', {
                 question_id: question.id,
                 create_user_id: userId,
@@ -168,7 +168,7 @@ class QuestionService extends Service {
             case DynamicCategory.QUESTION_SUMMARY.name:
                 return [DynamicCategory.QUESTION_SUMMARY.message, value];
             case DynamicCategory.FINISHED_AT.name:
-                return [DynamicCategory.FINISHED_AT.message, value];
+                return [DynamicCategory.FINISHED_AT.message, Dates.toDate(value)];
         }
         return value;
     }

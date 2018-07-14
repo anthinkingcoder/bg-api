@@ -9,7 +9,7 @@ module.exports = appInfo => {
     // add your config here
     config.middleware = ['auth', 'notFoundHandler'];
     config.auth = {
-        noAuthUrl: ['/api/login', '/api/register','/api/valid/email','/api/valid/tel'] //不需要登录认证
+        noAuthUrl: ['/api/login', '/api/register','/api/valid/email','/api/valid/tel','/api/email/invite'] //不需要登录认证
     };
     config.nunjucks = {
         enable: true,

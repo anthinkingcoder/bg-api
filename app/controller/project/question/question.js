@@ -99,7 +99,7 @@ class QuestionController extends BaseController {
                 let create_at = body.create_at;
                 let update_at = body.update_at;
                 let finished_at = body.finished_at;
-                let order = body.order ? body.order : {'key':'create_at', 'sort':'desc'} ;
+                let order = body.order ? body.order : {'key': 'create_at', 'sort': 'desc'};
                 let whereInfo = [
                     new WhereProperty('project_id', project.id),
                     new WhereProperty('question_status', question_status),
@@ -126,7 +126,7 @@ class QuestionController extends BaseController {
 
                 let page = body.page || 1;
                 let size = body.size || 10;
-                const list = await questionService.list(whereInfo, page, size,order);
+                const list = await questionService.list(whereInfo, page, size, order);
 
                 //格式化时间
                 list.forEach(item => {
@@ -161,7 +161,7 @@ class QuestionController extends BaseController {
             const projectService = ctx.service.project.project;
             const project = await projectService.findById(query.project_id);
             if (project) {
-                const list = await questionService.listByProjectIdAndPointerId(query.project_id, this.user().idx);
+                const list = await questionService.listByProjectIdAndPointerId(query.project_id, this.user().id);
                 this.success({
                     [QuestionStatus.NEW.name]: {
                         list: list.filter(item => item.question_status === QuestionStatus.NEW.state),
@@ -253,8 +253,12 @@ class QuestionController extends BaseController {
             const ctx = this.ctx;
             const query = ctx.query;
             const questionService = ctx.service.project.question.question;
-            const question = await questionService.findDetailById(query.question_id);
-            this.success(question[0]);
+            const questions = await questionService.findDetailById(query.question_id);
+            const question = questions[0];
+            question.create_at = Dates.toDate(question.create_at);
+            question.finished_at = Dates.toDate(question.finished_at);
+            question.update_at = Dates.toDate(question.update_at);
+            this.success(question);
         } catch (e) {
             console.info(e);
             this.error(ResponseStatus.DB_ERROR, '系统异常');
@@ -274,6 +278,10 @@ class QuestionController extends BaseController {
             if (!question) {
                 this.error(ResponseStatus.NOT_FOUND, '问题不存在');
             } else {
+                if (question.question_name === question[field]) {
+                    this.error(ResponseStatus.NORMAL_ERROR,'内容没有变化');
+                    return;
+                }
                 const result = await questionService.update({
                     [field]: value ? value : null,
                     id: question_id
