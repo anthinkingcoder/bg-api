@@ -3,6 +3,8 @@
 const BaseController = require('./base');
 
 class HomeController extends BaseController {
+
+    //@router /index
     async index() {
         await this.render('index.html');
     }
